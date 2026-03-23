@@ -1,0 +1,35 @@
+name: CEJ Bolig Notifikation
+
+on:
+  schedule:
+    - cron: "*/30 * * * *"
+  workflow_dispatch:
+
+jobs:
+  check-listings:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Installer afhængigheder
+        run: pip install requests beautifulsoup4
+
+      - name: Kør scraper
+        env:
+          GMAIL_USER: ${{ secrets.GMAIL_USER }}
+          GMAIL_APP_PASSWORD: ${{ secrets.GMAIL_APP_PASSWORD }}
+          RECIPIENT_EMAIL: ${{ secrets.RECIPIENT_EMAIL }}
+        run: python scraper.py
+
+      - name: Gem opdateret known_listings.json
+        uses: stefanzweifel/git-auto-commit-action@v5
+        with:
+          commit_message: "bot: opdater kendte boliger"
+          file_pattern: known_listings.json
